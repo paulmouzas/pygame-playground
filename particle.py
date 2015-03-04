@@ -10,11 +10,11 @@ black = (0, 0, 0)
 x = 100
 y = 450
 radius = 10
-speed = 3
-drag = .999
+speed = 0
+drag = .995
 angle = math.radians(270)
 
-gravity = (math.pi, 0.02)
+gravity = (math.pi, 0.15)
 
 clock = pygame.time.Clock()
 

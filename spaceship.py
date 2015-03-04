@@ -5,9 +5,9 @@ import random
 pygame.init()
 screen = pygame.display.set_mode((700, 700))
 
-white = (255, 255, 255)
-black = (0, 0, 0)
-
+white   = (255, 255, 255)
+black   = (000, 000, 000)
+red     = (255, 000, 000)
 
 clock = pygame.time.Clock()
 
@@ -48,6 +48,10 @@ max_speed = 8
 
 stars = [(random.randint(0, 699), random.randint(0, 699)) for x in range(140)]
 
+bullet_speed = 5
+
+bullets = []
+
 while running:
 
     for event in pygame.event.get():
@@ -59,7 +63,14 @@ while running:
             elif event.key == pygame.K_RIGHT:
                 angle_change = -.03
             elif event.key == pygame.K_UP:
-                thrust = .1
+                thrust = .08
+            elif event.key == pygame.K_SPACE:
+                bullet_angle = angle
+                # adjust the position of the bullet so that it is comming
+                # from the front point of the ship
+                offset_bullet_x = x + math.cos(bullet_angle) * 30
+                offset_bullet_y = y + -math.sin(bullet_angle) * 30
+                bullets.append([bullet_angle, offset_bullet_x, offset_bullet_y])
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 angle_change = 0
@@ -70,6 +81,26 @@ while running:
 
 
     screen.fill(black)
+
+    
+    for b in bullets:
+        bullet_angle = b[0]
+        bullet_x = b[1]
+        bullet_y = b[2]
+        bullet_x_offset = math.cos(bullet_angle) * 4
+        bullet_y_offset = -math.sin(bullet_angle) * 4
+
+        pygame.draw.line(screen,
+                (255, 0, 0),
+                (bullet_x, bullet_y),
+                (int(bullet_x + bullet_x_offset), int(bullet_y + bullet_y_offset)),
+                2
+            )
+
+        b[1] += math.cos(bullet_angle) * bullet_speed
+        b[2] -= math.sin(bullet_angle) * bullet_speed
+        if b[1] > 700 or b[2] > 700 or b[1] < 0 or b[2] < 0:
+            bullets.remove(b)
 
     for star in stars:
         star_x, star_y = star[0], star[1]
