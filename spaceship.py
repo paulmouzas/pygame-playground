@@ -72,6 +72,9 @@ while running:
     x += math.cos(trajectory_angle) * speed
     y -= math.sin(trajectory_angle) * speed
 
+    x %= 760
+    y %= 760
+
     draw_spaceship(x, y, angle)
 
     pygame.display.flip()
