@@ -14,9 +14,6 @@ black = (0, 0, 0)
 sun_radius = 50
 center = (350, 350)
 
-earth_x = 50
-earth_y = 350
-
 earth_orbit = 0
 moon_orbit = 0
 
