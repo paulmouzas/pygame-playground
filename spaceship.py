@@ -18,8 +18,7 @@ running = True
 def bullet_hit_asteroid(asteroid, bullet):
     # asteroid  => (x, y, r)
     # bullet    => (angle, x, y)
-
-    a_x, a_y, a_r = asteroid
+    a_x, a_y, a_r, _, _ = asteroid
 
     b_a, b_x, b_y = bullet
 
@@ -40,25 +39,37 @@ def addVectors((angle1, length1), (angle2, length2)):
 
     return (angle, length)
 
-def draw_asteroid(x, y, r):
-    pygame.draw.circle(screen, white, (x, y), r, 1)
+def draw_asteroid(a):
+    a[0] %= 760
+    a[1] %= 760
+    pygame.draw.circle(screen, white, (int(a[0]), int(a[1])), a[2], 1)
 
-def explode_asteroid(x, y, r):
+def explode_asteroid(a):
     # this function will take the position and radius of an asteroid and return
     # the points and radii of three smaller asteroids
 
-    diff = r / 2
-    new_r = r / 3
+    x, y, r, angle, speed = a
 
-    angle1 = math.pi * 3 / 4
-    angle2 = math.pi / 4
-    angle3 = math.pi * 5 / 4
+    # this will be how far away from the center the exploded asteroids will be
+    diff = r * 1.3
+    # make the new size for the asteroids half as big
+    new_r = r / 2
 
-    x1, y1 = int(math.cos(angle1) * diff + x), int(math.sin(angle1) * diff + y)
-    x2, y2 = int(math.cos(angle2) * diff + x), int(math.sin(angle2) * diff + y)
-    x3, y3 = int(math.cos(angle3) * diff + x), int(math.sin(angle2) * diff + y)
+    # set a random angle and speed
+    angle_1 = random.random() * (math.pi * 2)
+    speed_1 = random.random() * .5
 
-    return (x1, y1, new_r), (x2, y2, new_r), (x3, y3, new_r)
+    angle_2 = random.random() * (math.pi * 2)
+    speed_2 = random.random() * .5
+
+    angle_3 = random.random() * (math.pi * 2)
+    speed_3 = random.random() * .5
+
+    x1, y1 = int(math.cos(angle_1) * diff + x), int(math.sin(angle_1) * diff + y)
+    x2, y2 = int(math.cos(angle_2) * diff + x), int(math.sin(angle_2) * diff + y)
+    x3, y3 = int(math.cos(angle_3) * diff + x), int(math.sin(angle_3) * diff + y)
+
+    return [x1, y1, new_r, angle_1, speed_1], [x2, y2, new_r, angle_2, speed_2], [x3, y3, new_r, angle_3, speed_3]
     
 
 def draw_spaceship(x, y, angle):
@@ -85,10 +96,13 @@ speed = 0
 thrust = 0
 max_speed = 12
 
-
 asteroids = []
-asteroid = (100, 100, 40)
+
+# asteroid -> (x, y, raidus, angle, speed)
+asteroid = [100, 100, 40, math.pi * 6 / 11, .5]
+asteroid2 = [500, 400, 60, math.pi * 3 / 2, .2]
 asteroids.append(asteroid)
+asteroids.append(asteroid2)
 
 stars = [(random.randint(0, 699), random.randint(0, 699)) for x in range(140)]
 
@@ -107,7 +121,7 @@ while running:
             elif event.key == pygame.K_RIGHT:
                 angle_change = -.03
             elif event.key == pygame.K_UP:
-                thrust = .02
+                thrust = .04
             elif event.key == pygame.K_SPACE:
                 bullet_angle = angle
                 # adjust the position of the bullet so that it is comming
@@ -122,7 +136,6 @@ while running:
                 angle_change = 0
             elif event.key == pygame.K_UP:
                 thrust = 0
-
 
     screen.fill(black)
 
@@ -172,18 +185,42 @@ while running:
     # make the spaceship appear on the other side of the it goes beyond the
     # screen
 
+    # make the spaceship appear on the other side if it goes beyond the screen
     x %= 760
     y %= 760
 
     for a in asteroids:
-        # unpack the tuple (x, y, r)
-        a_x, a_y, a_r = a
-        draw_asteroid(a_x, a_y, a_r)
+        # asteroid -> [x, y, r, angle, speed]
 
+
+        # update the positions of the asteroids
+        a[0] += math.cos(a[3]) * a[4]
+        a[1] -= math.sin(a[3]) * a[4]
+
+        draw_asteroid(a)
+
+
+    # check for bullets hitting asteroid
+    asteroids_copy = asteroids[:]
+    bullets_copy = bullets[:]
     for b in bullets:
-        if bullet_hit_asteroid(asteroid, b):
-            print 'HIT!'
+        for a in asteroids:
+            if bullet_hit_asteroid(a, b):
+                # remove all asteroids smaller than 10
+                if a[2] < 20:
+                    asteroids_copy.remove(a)
+                    continue
+                a1, a2, a3 = explode_asteroid(a)
 
+                asteroids_copy.remove(a)
+                bullets_copy.remove(b)
+
+                asteroids_copy.append(a1)
+                asteroids_copy.append(a2)
+                asteroids_copy.append(a3)
+
+    asteroids = asteroids_copy[:]
+    bullets = bullets_copy[:]
 
     draw_spaceship(x, y, angle)
 
